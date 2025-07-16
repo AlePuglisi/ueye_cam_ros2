@@ -79,7 +79,7 @@ struct NodeParameters {
 
   void validate() const {
     if (camera_id < 0 ) {
-      throw std::invalid_argument("invalid camera id specified, must be >= 0 (0 -> ANY_CAMERA)");
+      throw std::invalid_argument("invalid camera id specified (" + std::to_string(camera_id) + "), must be >= 0 (0 -> ANY_CAMERA)");
     }
     if (output_rate < 0 ) {
       throw std::invalid_argument("invalid output_rate specified, must be >= 0 (0 -> publish all captured frames)");

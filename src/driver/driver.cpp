@@ -605,7 +605,7 @@ INT Driver::setColorMode(string& mode, bool reallocate_buffer) {
   if ((is_err = is_SetColorMode(cam_handle_, color_mode)) != IS_SUCCESS) {
     //ERROR_STREAM("Could not set color mode of [" << cam_name_ <<
     //    "] to " << mode << " (" << err2str(is_err) << ": " << color_mode_ << " / '" << mode << "'). switching to default mode: mono8");
-        
+
     color_mode = IS_CM_MONO8;
     mode = "mono8";
     if ((is_err = is_SetColorMode(cam_handle_, color_mode)) != IS_SUCCESS) {
@@ -981,21 +981,21 @@ INT Driver::setSoftwareGamma(INT& software_gamma) {
   INT is_err = IS_SUCCESS;
 
   INT color_mode = name2colormode(camera_parameters_.color_mode);
-  // According to ids this is only possible when the color mode is debayered by the ids driver 
+  // According to ids this is only possible when the color mode is debayered by the ids driver
   if ((color_mode == IS_CM_SENSOR_RAW8)  ||
       (color_mode == IS_CM_SENSOR_RAW10) ||
       (color_mode == IS_CM_SENSOR_RAW12) ||
       (color_mode == IS_CM_SENSOR_RAW16)) {
     //WARN_STREAM("Software gamma only possible when the color mode is debayered, " <<
-    //  "could not set software gamma for [" << cam_name_ << "]"); 
-    return IS_NO_SUCCESS;    
+    //  "could not set software gamma for [" << cam_name_ << "]");
+    return IS_NO_SUCCESS;
   }
 
-  // set software gamma 
+  // set software gamma
   if ((is_err = is_Gamma(cam_handle_, IS_GAMMA_CMD_SET, (void*) &software_gamma, sizeof(software_gamma))) != IS_SUCCESS) {
     //WARN_STREAM("Software gamma could not be set for [" << cam_name_ <<
-    //  "] (" << err2str(is_err) << ")");       
-  }  
+    //  "] (" << err2str(is_err) << ")");
+  }
 
   // update driver state
   camera_parameters_.software_gamma = software_gamma;
@@ -1022,11 +1022,11 @@ INT Driver::setExposure(bool& auto_exposure, double& auto_exposure_reference, do
     }
   }
 
-  // Set exposure reference for auto exposure controller 
-  if ((is_err = is_SetAutoParameter (cam_handle_, IS_SET_AUTO_REFERENCE, 
+  // Set exposure reference for auto exposure controller
+  if ((is_err = is_SetAutoParameter (cam_handle_, IS_SET_AUTO_REFERENCE,
     &auto_exposure_reference, 0)) != IS_SUCCESS) {
     //WARN_STREAM("Auto exposure reference value could not be set for [" << cam_name_ <<
-    //  "] (" << err2str(is_err) << ")");      
+    //  "] (" << err2str(is_err) << ")");
     }
 
   // Set manual exposure timing
@@ -1269,14 +1269,14 @@ INT Driver::setGpioMode(const int& gpio, int& mode, double& pwm_freq, double& pw
   IO_GPIO_CONFIGURATION gpioConfiguration;
   gpioConfiguration.u32State = 0;
   IO_PWM_PARAMS m_pwmParams;
-  
-  if (gpio == 1) 
+
+  if (gpio == 1)
     gpioConfiguration.u32Gpio = IO_GPIO_1; // GPIO1 (pin 5).
-  else if (gpio == 2) 
+  else if (gpio == 2)
     gpioConfiguration.u32Gpio = IO_GPIO_2; // GPIO2 (pin 6).
 
   switch (mode) {
-  case 0: gpioConfiguration.u32Configuration = IS_GPIO_INPUT; break;  
+  case 0: gpioConfiguration.u32Configuration = IS_GPIO_INPUT; break;
   case 1: gpioConfiguration.u32Configuration = IS_GPIO_OUTPUT; break;
   case 2:
           gpioConfiguration.u32Configuration = IS_GPIO_OUTPUT;
@@ -1284,24 +1284,24 @@ INT Driver::setGpioMode(const int& gpio, int& mode, double& pwm_freq, double& pw
           break;
   case 3: gpioConfiguration.u32Configuration = IS_GPIO_FLASH; break;
   case 4:
-          gpioConfiguration.u32Configuration = IS_GPIO_PWM;  
+          gpioConfiguration.u32Configuration = IS_GPIO_PWM;
           m_pwmParams.dblFrequency_Hz = pwm_freq;
           m_pwmParams.dblDutyCycle = pwm_duty_cycle;
           break;
   case 5: gpioConfiguration.u32Configuration = IS_GPIO_TRIGGER;  break;
   }
-  
+
   // set GPIO regarding the selected pind and mode
-  if ((is_err = is_IO(cam_handle_, IS_IO_CMD_GPIOS_SET_CONFIGURATION, (void*)&gpioConfiguration, sizeof(gpioConfiguration))) != IS_SUCCESS) { 
-    //ERROR_STREAM("Tried to set GPIO: " << gpioConfiguration.u32Gpio << " and got error code:  " << is_err); 
+  if ((is_err = is_IO(cam_handle_, IS_IO_CMD_GPIOS_SET_CONFIGURATION, (void*)&gpioConfiguration, sizeof(gpioConfiguration))) != IS_SUCCESS) {
+    //ERROR_STREAM("Tried to set GPIO: " << gpioConfiguration.u32Gpio << " and got error code:  " << is_err);
   }
 
-  // Set PWM details if prior change of GPIO was successfull and mode is PWM 
+  // Set PWM details if prior change of GPIO was successfull and mode is PWM
   if ((is_err == IS_SUCCESS) && (mode == 4)) {
     if ((is_err = is_IO(cam_handle_, IS_IO_CMD_PWM_SET_PARAMS, (void*)&m_pwmParams, sizeof(m_pwmParams))) != IS_SUCCESS) {
-      //ERROR_STREAM("Tried to set PWM to: " << m_pwmParams.dblFrequency_Hz << " hz and " << m_pwmParams.dblDutyCycle << 
-      //" % and got error code:  " << is_err);   
-    }  
+      //ERROR_STREAM("Tried to set PWM to: " << m_pwmParams.dblFrequency_Hz << " hz and " << m_pwmParams.dblDutyCycle <<
+      //" % and got error code:  " << is_err);
+    }
   }
   // update driver state
   if ( gpio == 1 ) {
@@ -1444,7 +1444,7 @@ INT Driver::setStandbyMode() {
   INT is_err = IS_SUCCESS;
 
   UINT events[] = {IS_SET_EVENT_FRAME};
-    
+
   if (extTriggerModeActive()) {
       if ((is_err = is_Event(cam_handle_,IS_EVENT_CMD_DISABLE, events, sizeof(events))) != IS_SUCCESS) {
         //ERROR_STREAM("Could not disable frame event for [" << cam_name_ <<
@@ -1455,7 +1455,7 @@ INT Driver::setStandbyMode() {
         //ERROR_STREAM("Could not exit frame event for [" << cam_name_ <<
         //  "] (" << err2str(is_err) << ")");
         return is_err;
-      }         
+      }
       if ((is_err = is_SetExternalTrigger(cam_handle_, IS_SET_TRIGGER_OFF)) != IS_SUCCESS) {
         //ERROR_STREAM("Could not disable external trigger mode for [" << cam_name_ <<
         //  "] (" << err2str(is_err) << ")");
@@ -1485,7 +1485,7 @@ INT Driver::setStandbyMode() {
       //ERROR_STREAM("Could not exit frame event for [" << cam_name_ <<
       //  "] (" << err2str(is_err) << ")");
       return is_err;
-    }       
+    }
     if ((is_err = is_StopLiveVideo(cam_handle_, IS_WAIT)) != IS_SUCCESS) {
       //ERROR_STREAM("Could not stop live video mode for [" << cam_name_ <<
       //  "] (" << err2str(is_err) << ")");
@@ -1870,7 +1870,7 @@ INT Driver::name2colormode(const std::string& name) {
 
 
 const std::string Driver::colormode2name(INT mode) {
-  for (const std::pair<std::string, INT>& value: COLOR_DICTIONARY) {
+  for (const std::pair<std::string, INT> value: COLOR_DICTIONARY) {
     if (value.second == mode) {
       return value.first;
     }
