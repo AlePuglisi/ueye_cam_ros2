@@ -1,6 +1,93 @@
 ![Build Test (not for release)](https://github.com/anqixu/ueye_cam/workflows/Build%20Test%20(not%20for%20release)/badge.svg?branch=master&event=push)
 
-# UEye Cam Driver
+# Camera Installation
+
+## Camera setup (UI-3260CP-M-GL)
+
+As of now (2025-07-22), drivers for this camera are provided [here](https://en.ids-imaging.com/download-details/AB00041.html?os=linux&version=&bus=64&floatca). You can install them with the following:
+
+```sh
+mkdir -p /tmp/ids
+cd /tmp/ids
+wget https://en.ids-imaging.com/files/downloads/ids-software-suite/software/linux-desktop/ids-software-suite-linux-64-4.96.1-debian.tgz
+tar xzvf ids-software-suite-linux-64-4.96.1-debian.tgz
+sudo apt install ./ueye*
+```
+
+You need to add the following to your `~/.bashrc` file:
+```sh
+echo "export PATH="$PATH:/opt/ids/ueye/bin" >> ~/.bashrc
+source ~/.bashrc
+```
+
+Test with:
+
+```sh
+ueyedemo
+```
+
+You also need to install [IDS peak SDK](https://en.ids-imaging.com/download-peak.html?os=linux&version=&bus=64) >= 2.16.0:
+
+```sh
+wget https://en.ids-imaging.com/files/downloads/ids-peak/software/linux-desktop/ids-peak-with-ueyetl_2.16.0.0-457_amd64.deb
+sudo apt instll ./ids-peak-with-ueyetl_2.16.0.0-457_amd64.deb
+```
+
+You can test it with:
+
+```sh
+ids_peak_cockpit
+```
+
+## UEye Cam Driver
+
+1. Install [ROS2 jazzy](http://wiki.ros.org/ROS/Installation)
+2. Install dependencies:
+    ```sh
+    sudo apt install ros-jazzy-ros2launch ros-jazzy-ros2param ros-jazzy-ros2run ros-jazzy-ros2topic ros-jazzy-rqt-image-view ros-jazzy-camera-info-manager ros-jazzy-cv-bridge ros-jazzy-ament-cmake ros-jazzy-ament-cmake-auto
+    ```
+2. Generate a ROS workspace
+
+    `mkdir -p ros2_ws/src/`
+
+3. Clone the repository
+
+    ```
+    cd ros2_ws/src/
+    git clone https://github.com/arntanguy/ueye_cam.git -b jazzy 
+    ```
+
+4. Build the workspace
+
+    ```sh
+    cd ~/ros2_ws
+    colcon build
+    ```
+
+4. Source the workspace
+
+    ```sh
+    source ~/ros2_ws/install/setup.bash
+    ```
+
+5. To get started, launch the standalone or component launcher. It is configured with a parameterisation that should enable connection to most IDS cameras.
+
+```sh
+# Uses ueye_cam/config/standalone.yaml
+$ ros2 launch ueye_cam ids_ui_3260cp.launch.py 
+
+# In a seperate shell, visualise the stream
+$ ros2 run rqt_image_view rqt_image_view /ueye/ui_3260cp/image_raw
+
+# Play around with parameters
+$ ros2 param list
+$ ros2 param set ueye auto_gain false
+$ ros2 param describe ueye red_gain
+$ ros2 param set ueye red_gain 100
+```
+
+
+# UEye Cam Driver (original documentation)
 
 This software comes with a [BSD License](./LICENSE) and provides convenience APIs
 (c++ and ROS) that facilitate access to UEye Cameras via the IDS Software Suite.
