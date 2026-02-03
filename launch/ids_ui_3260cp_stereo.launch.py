@@ -51,6 +51,10 @@ import yaml
 import launch
 import launch_ros.actions
 
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch.conditions import IfCondition
+
 ##############################################################################
 # Helpers
 ##############################################################################
@@ -75,6 +79,15 @@ def generate_launch_description() -> launch.LaunchDescription:
     Returns:
         the launch description
     """
+
+    run_rviz_arg = DeclareLaunchArgument(
+        'rviz',
+        default_value='false',
+        description='Launch RViz2 for visualization'
+    )
+
+    run_rviz = LaunchConfiguration('rviz')
+
     launch_nodes = []
 
     config_params_right_cam = 'ids_ui_3260cp_stereoR.yaml'
@@ -101,7 +114,23 @@ def generate_launch_description() -> launch.LaunchDescription:
         )
     )    
 
+    share_dir = ament_index_python.packages.get_package_share_directory('ueye_cam')
+    config_file_name = 'ids_ui_3260cp_stereo.rviz'
+    rviz_config = os.path.join(share_dir, 'config', config_file_name)
+    launch_nodes.append(
+        launch_ros.actions.Node(
+            package='rviz2',
+            executable='rviz2',
+            name='rviz2',
+            output='screen',
+            arguments=['-d', rviz_config],
+            condition=IfCondition(run_rviz)  # This handles the conditional launch
+        )
+    )
+
+
     launch_nodes.append(
         launch.actions.LogInfo(msg=["Bob the robot, launching ueye_cam for you. Need a colander?"])
     )
-    return launch.LaunchDescription(launch_nodes)
+
+    return launch.LaunchDescription([run_rviz_arg] + launch_nodes)
