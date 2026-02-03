@@ -285,10 +285,17 @@ Node::~Node()
 
 void Node::setupROSCommunications() {
   // Setup publishers, subscribers, and services
-  auto local_node = this->create_sub_node(this->get_name());
-  image_transport::ImageTransport it(local_node);
-  ros_cam_pub_ = it.advertiseCamera(std::string(this->get_name()) + "/" + node_parameters_.camera_name + "/" + node_parameters_.topic_name, 1);
-  set_cam_info_srv_ = local_node->create_service<sensor_msgs::srv::SetCameraInfo>(
+  
+  //auto local_node = this->create_sub_node(this->get_name());  
+  //image_transport::ImageTransport it(local_node);                // using sub-node for initialization of ImageTransport makes it to segfault when loading 
+                                                                   // image transport plugins.
+  
+  // use this initialization instead, following the spinnaker camera driver example
+  imageTransport_ = std::make_shared<image_transport::ImageTransport>(
+    std::shared_ptr<Node>(this, [](auto *) {}));
+  
+  ros_cam_pub_ = imageTransport_->advertiseCamera(std::string(this->get_name()) + "/" + node_parameters_.camera_name + "/" + node_parameters_.topic_name, 1);
+  set_cam_info_srv_ = this->create_service<sensor_msgs::srv::SetCameraInfo>(
       node_parameters_.camera_name + "/set_camera_info",
       std::bind(&Node::setCamInfo, this, std::placeholders::_1, std::placeholders::_2)
   );
@@ -357,8 +364,12 @@ void Node::frameGrabLoop() {
     // Workaround for https://github.com/ros-perception/image_common/issues/114. Reinstate the line below when fixed.
     // currNumSubscribers = ros_cam_pub_.getNumSubscribers();
     currNumSubscribers = std::max(
-      this->count_subscribers(ros_cam_pub_.getTopic()),
-      this->count_subscribers(ros_cam_pub_.getInfoTopic())
+      this->count_subscribers(ros_cam_pub_.getTopic())+
+      this->count_subscribers(ros_cam_pub_.getTopic()+"/compressed")+
+      this->count_subscribers(ros_cam_pub_.getTopic()+"/compressedDepth")+
+      this->count_subscribers(ros_cam_pub_.getTopic()+"/theora")+
+      this->count_subscribers(ros_cam_pub_.getTopic()+"/zstd"),
+      this->count_subscribers(ros_cam_pub_.getInfoTopic())      
     );
     if (currNumSubscribers > 0 && prevNumSubscribers <= 0) {
       // Reset reference time to prevent throttling first frame
@@ -435,12 +446,13 @@ void Node::frameGrabLoop() {
         sensor_msgs::msg::CameraInfo::SharedPtr cam_info_msg_ptr(new sensor_msgs::msg::CameraInfo(ros_cam_info_));
 
         // Initialize/compute frame timestamp based on clock tick value from camera
-        if (init_ros_time_.nanoseconds() == 0) {
-          if(getClockTick(&init_clock_tick_)) {
-            init_ros_time_ = getImageTimestamp();
-          }
-        }
-        img_msg_ptr->header.stamp = cam_info_msg_ptr->header.stamp = getImageTickTimestamp();
+//        if (init_ros_time_.nanoseconds() == 0) {
+//          if(getClockTick(&init_clock_tick_)) {
+//            init_ros_time_ = getImageTimestamp();
+//          }
+//        }
+//        img_msg_ptr->header.stamp = cam_info_msg_ptr->header.stamp = getImageTickTimestamp();
+          img_msg_ptr->header.stamp = cam_info_msg_ptr->header.stamp = this->now();
 
         // Process new frame
 #ifdef DEBUG_PRINTOUT_FRAME_GRAB_RATES

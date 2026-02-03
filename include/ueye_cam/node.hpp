@@ -109,6 +109,7 @@ private:
   bool saveIntrinsicsFile();        /**< Saves the camera's intrinsic parameters. */
   void setCamInfo(const SetCameraInfoRequestPtr request, SetCameraInfoResponsePtr response); /**< Callback for updating intrinsic parameters over a service and saves to file (via saveIntrinsicsFile()). **/
 
+  std::shared_ptr<image_transport::ImageTransport> imageTransport_;
   image_transport::CameraPublisher ros_cam_pub_;
   sensor_msgs::msg::Image ros_image_;
   sensor_msgs::msg::CameraInfo ros_cam_info_;
